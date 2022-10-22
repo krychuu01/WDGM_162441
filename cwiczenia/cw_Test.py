@@ -20,4 +20,4 @@ hsl.to_rgb()
 # hsl.show_img_without_axis()
 # hsl.show_as_rgb_layers()
 
-BaseImage.show_three_plots(hsv, hsi, hsl)
+BaseImage.show_all_plots(img1, hsv, hsi, hsl)

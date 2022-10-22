@@ -41,15 +41,18 @@ class BaseImage:
         plt.show()
 
     @classmethod
-    def show_three_plots(cls, hsv, hsi, hsl) -> None:
-        figure, axis = plt.subplots(1, 3)
-        axis[0].imshow(hsv.data)
-        axis[0].set_title("after hsv conversion")
-        axis[1].imshow(hsi.data)
-        axis[1].set_title("after hsi conversion")
-        axis[2].imshow(hsl.data)
-        axis[2].set_title("after hsl conversion")
-        figure.set_figwidth(15)
+    def show_all_plots(cls, rgb, hsv, hsi, hsl) -> None:
+        figure, axis = plt.subplots(2, 2)
+        axis[0][0].imshow(rgb.data)
+        axis[0][0].set_title("before any conversion")
+        axis[0][1].imshow(hsv.data)
+        axis[0][1].set_title("after hsv conversion")
+        axis[1][0].imshow(hsi.data)
+        axis[1][0].set_title("after hsi conversion")
+        axis[1][1].imshow(hsl.data)
+        axis[1][1].set_title("after hsl conversion")
+        figure.set_figwidth(10)
+        figure.set_figheight(9)
         plt.show()
 
     def show_as_rgb_layers(self) -> None:
