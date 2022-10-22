@@ -29,10 +29,7 @@ class BaseImage:
         imsave('image.jpg', self.data)
 
     def show_img(self) -> None:
-        if self.color_model == ColorModel.rgb or self.color_model is None:
-            imshow(self.data.astype('uint8'))
-        else:
-            imshow(self.data.astype('uint16'))
+        imshow(self.data)
         plt.show()
 
     def show_img_without_axis(self) -> None:
@@ -41,6 +38,18 @@ class BaseImage:
         else:
             hsv_to_rgb(self.data)
         plt.axis('off')
+        plt.show()
+
+    @classmethod
+    def show_three_plots(cls, hsv, hsi, hsl) -> None:
+        figure, axis = plt.subplots(1, 3)
+        axis[0].imshow(hsv.data)
+        axis[0].set_title("after hsv conversion")
+        axis[1].imshow(hsi.data)
+        axis[1].set_title("after hsi conversion")
+        axis[2].imshow(hsl.data)
+        axis[2].set_title("after hsl conversion")
+        figure.set_figwidth(15)
         plt.show()
 
     def show_as_rgb_layers(self) -> None:
@@ -125,10 +134,10 @@ class BaseImage:
     """
 
     def to_hsi(self) -> 'BaseImage':
-        red, green, blue = self.get_img_layers()
+        red, green, blue = self.get_img_layers() / 255.0
         M = np.max([red, green, blue], axis=0)
         m = np.min([red, green, blue], axis=0)
-        I = (red + green + blue) / 3
+        I = (red + green + blue) / 3.0
         S = np.where(M > 0, 1 - m / M, 0)
         additionMinusSubtraction = red ** 2 + green ** 2 + blue ** 2 - red * green - red * blue - green * blue
         H = np.where(green >= blue,
@@ -145,7 +154,7 @@ class BaseImage:
         for pixel in self.data:
             for color in pixel:
                 H, S, I = color[0], color[1], color[2]
-                if H >= 240:
+                if H > 240:
                     color[0] = I + I * S * (1 - math.cos(H - 240) / math.cos(300 - H))
                     color[1] = I - I * S
                     color[2] = I + I * S * (math.cos(H - 240) / math.cos(300 - H))
@@ -173,28 +182,20 @@ class BaseImage:
         return self
 
     def to_hsl(self) -> 'BaseImage':
-        self.data = self.data.copy()
-        for pixel in self.data:
-            for color in pixel:
-                red, green, blue = color[0] / 255, color[1] / 255, color[2] / 255
-                M = max(red, green, blue)
-                m = min(red, green, blue)
-                d = (M - m) / 255
-                L = (0.5 * (M + m)) / 255
-                S = d / (1 - math.fabs(2 * L - 1)) if L > 0 else 0
-                addition = red ** 2 + green ** 2 + blue ** 2
-                subtraction = red * green - red * blue - green * blue
-                additionMinusSubtraction = addition - subtraction
-                if green >= blue:
-                    H = math.acos((red - green / 2 - blue / 2) / math.sqrt(additionMinusSubtraction))
-                else:
-                    H = 360 - math.acos((red - green / 2 - blue / 2) / math.sqrt(additionMinusSubtraction))
-                color[0] = H * 255
-                color[1] = S * 255
-                color[2] = L * 255
+        red, green, blue = self.get_img_layers() / 255.0
+        M = np.max([red, green, blue], axis=0)
+        m = np.min([red, green, blue], axis=0)
+        d = (M - m)/ 255
+        L = (0.5*(M + m)) / 255
+        S = np.where(L > 0, d / 1 - np.fabs(2 * L - 1), 0)
+        additionMinusSubtraction = np.double(
+            np.power(red, 2) + np.power(green, 2) + np.power(blue, 2) - red * green - red * blue - green * blue)
+        H = np.where(green >= blue,
+                     np.cos((red - green / 2.0 - blue / 2.0) / np.sqrt(additionMinusSubtraction)) ** (-1),
+                     360 - np.cos((red - green / 2.0 - blue / 2.0) / np.sqrt(additionMinusSubtraction)) ** (-1))
 
-        self.color_model = ColorModel.hsl
-        return self
+        data_np = np.dstack((H, S, L))
+        return BaseImage(data_np, ColorModel.hsv)
 
     def hsl_to_rgb(self) -> 'BaseImage':
         self.data = self.data.copy()
