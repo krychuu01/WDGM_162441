@@ -1,3 +1,4 @@
+
 from WDGM_162441.cwiczenia.cw_2 import ColorModel
 from WDGM_162441.cwiczenia.cw_2.BaseImage import BaseImage
 import matplotlib.pyplot as plt
