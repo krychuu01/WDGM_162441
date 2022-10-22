@@ -8,6 +8,7 @@ img1 = BaseImage('lena.jpg', color_model=ColorModel.ColorModel.rgb)
 # img2 = BaseImage('lena.jpg', color_model=ColorModel.ColorModel.rgb)
 # img3 = BaseImage('lena.jpg', color_model=ColorModel.ColorModel.rgb)
 
+img1.show_img()
 hsv = img1.to_hsv()
 # hsv.show_as_rgb_layers()
 # hsv.show_img_without_axis()

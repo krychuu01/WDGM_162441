@@ -37,7 +37,7 @@ class BaseImage:
 
     def show_img_without_axis(self) -> None:
         if self.color_model == ColorModel.rgb or self.color_model is None:
-            imshow(self.data.astype('uint8'))
+            imshow(self.data)
         else:
             hsv_to_rgb(self.data)
         plt.axis('off')
@@ -67,7 +67,7 @@ class BaseImage:
     """
 
     def to_hsv(self) -> 'BaseImage':
-        red, green, blue = self.get_img_layers()
+        red, green, blue = self.get_img_layers() / 255.0
         M = np.max([red, green, blue], axis=0)
         m = np.min([red, green, blue], axis=0)
         V = M / 255
@@ -87,7 +87,7 @@ class BaseImage:
             raise Exception("color_model must be hsv to use this method!")
         for pixel in self.data:
             for color in pixel:
-                H, S, V = color[0], color[1], color[2]
+                H, S, V = color[0] * 255, color[1], color[2]
                 M = 255 * V
                 m = M * (1 - S)
                 z = (M - m) * (1 - math.fabs(((H / 60) % 2) - 1))
