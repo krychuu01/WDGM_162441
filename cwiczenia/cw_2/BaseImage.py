@@ -130,9 +130,9 @@ class BaseImage:
             raise Exception("color_model must be hsi to use this method!")
         H, S, I = self.get_img_layers()
         IS = I * S
-        r = np.where(H > 240, I + IS * (1 - np.cos(H - 240) / np.cos(300 - H)), np.where(H >= 120, I - IS, np.where(H > 0, I + IS * np.cos(H)/np.cos(60-H), I + 2 * IS)))
-        g = np.where(H >= 240, I - IS, np.where(H > 120, I + IS * np.cos(H - 120)/np.cos(180 - H), np.where(H == 120, I + 2 * IS, np.where(H > 0, I + IS * (1 - np.cos(H)/np.cos(60-H)), I - IS))))
-        b = np.where(H > 240, I + IS * np.cos(H - 240) / np.cos(300 - H), np.where(H == 240, I + 2 * IS, np.where(H > 120, I + IS * (1 - np.cos(H - 120)/np.cos(180-H)), I - IS)))
+        r = np.where(H > 240, I + IS * np.fabs(1 - np.cos(H - 240) / np.cos(300 - H)), np.where(H >= 120, I - IS, np.where(H > 0.99, I + IS * np.cos(H)/np.cos(60-H), I + 2 * IS)))
+        g = np.where(H >= 240, I - IS, np.where(H > 120, I + IS * np.cos(H - 120) / np.cos(180 - H), np.where(np.logical_and(119.99 < H, H < 120.99), I + 2 * IS, np.where(H > 0.99, I + IS * np.fabs(1 - np.cos(H) / np.cos(60 - H)), I - IS))))
+        b = np.where(H > 240, I + IS * np.cos(H - 240) / np.cos(300 - H), np.where(H == 240, I + 2 * IS, np.where(H > 120, I + IS * np.fabs(1 - np.cos(H - 120)/np.cos(180-H)), I - IS)))
 
         return BaseImage(np.dstack((r, g, b)), ColorModel.rgb)
 
@@ -175,3 +175,4 @@ class BaseImage:
             return self.hsi_to_rgb()
         if self.color_model == ColorModel.hsl:
             return self.hsl_to_rgb()
+
