@@ -1,15 +1,12 @@
-import math
+from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.image import imread
+from matplotlib.image import imsave
+from matplotlib.pyplot import imshow
 
 from WDGM_162441.cwiczenia.cw_2.ColorModel import ColorModel
-
-from matplotlib.colors import hsv_to_rgb
-from matplotlib.image import imread
-from matplotlib.pyplot import imshow
-from matplotlib.image import imsave
-from typing import Any
 
 
 class BaseImage:
@@ -81,15 +78,15 @@ class BaseImage:
     """
 
     def to_hsv(self) -> 'BaseImage':
-        red, green, blue = self.get_img_layers() / 255.0
+        red, green, blue = self.get_img_layers() / 255
         M = np.max([red, green, blue], axis=0)
         m = np.min([red, green, blue], axis=0)
         V = M / 255
         S = np.where(M > 0, 1 - m / M, 0)
         additionMinusSubtraction = np.power(red, 2) + np.power(green, 2) + np.power(blue, 2) - red * green - red * blue - green * blue
         H = np.where(green >= blue,
-                     np.cos((red - green / 2.0 - blue / 2.0) / np.sqrt(additionMinusSubtraction)) ** (-1),
-                     360 - np.cos((red - green / 2.0 - blue / 2.0) / np.sqrt(additionMinusSubtraction)) ** (-1))
+                     np.cos((red - green / 2 - blue / 2) / np.sqrt(additionMinusSubtraction)) ** (-1),
+                     360 - np.cos((red - green / 2 - blue / 2) / np.sqrt(additionMinusSubtraction)) ** (-1))
 
         return BaseImage(np.dstack((H, S, V)), ColorModel.hsv)
 
@@ -113,10 +110,10 @@ class BaseImage:
     """
 
     def to_hsi(self) -> 'BaseImage':
-        red, green, blue = self.get_img_layers() / 255.0
+        red, green, blue = self.get_img_layers() / 255
         M = np.max([red, green, blue], axis=0)
         m = np.min([red, green, blue], axis=0)
-        I = (red + green + blue) / 3.0
+        I = (red + green + blue) / 3
         S = np.where(M > 0, 1 - m / M, 0)
         additionMinusSubtraction = red ** 2 + green ** 2 + blue ** 2 - red * green - red * blue - green * blue
         H = np.where(green >= blue,
@@ -130,24 +127,23 @@ class BaseImage:
             raise Exception("color_model must be hsi to use this method!")
         H, S, I = self.get_img_layers()
         IS = I * S
-        r = np.where(H > 240, I + IS * np.fabs(1 - np.cos(H - 240) / np.cos(300 - H)), np.where(H >= 120, I - IS, np.where(H > 0.99, I + IS * np.cos(H)/np.cos(60-H), I + 2 * IS)))
-        g = np.where(H >= 240, I - IS, np.where(H > 120, I + IS * np.cos(H - 120) / np.cos(180 - H), np.where(np.logical_and(119.99 < H, H < 120.99), I + 2 * IS, np.where(H > 0.99, I + IS * np.fabs(1 - np.cos(H) / np.cos(60 - H)), I - IS))))
-        b = np.where(H > 240, I + IS * np.cos(H - 240) / np.cos(300 - H), np.where(H == 240, I + 2 * IS, np.where(H > 120, I + IS * np.fabs(1 - np.cos(H - 120)/np.cos(180-H)), I - IS)))
+        r = np.where(H > 240, I + IS * (1 - np.cos(H - 240) / np.cos(300 - H)), np.where(H >= 120, I - IS, np.where(H > 0, I + IS * np.cos(H)/np.cos(60-H), I + 2 * IS)))
+        g = np.where(H >= 240, I - IS, np.where(H > 120, I + IS * np.cos(H - 120) / np.cos(180 - H), np.where(H == 120, I + 2 * IS, np.where(H > 0, I + IS * (1 - np.cos(H) / np.cos(60 - H)), I - IS))))
+        b = np.where(H > 240, I + IS * np.cos(H - 240) / np.cos(300 - H), np.where(H == 240, I + 2 * IS, np.where(H > 120, I + IS * (1 - np.cos(H - 120)/np.cos(180-H)), I - IS)))
 
         return BaseImage(np.dstack((r, g, b)), ColorModel.rgb)
 
     def to_hsl(self) -> 'BaseImage':
-        red, green, blue = self.get_img_layers() / 255.0
+        red, green, blue = self.get_img_layers() / 255
         M = np.max([red, green, blue], axis=0)
         m = np.min([red, green, blue], axis=0)
         L = (0.5 * (M + m)) / 255
         d = (M - m) / 255
         S = np.where(L > 0, d / (1 - np.fabs(2 * L - 1)), 0)
-        # S = np.where(M > 0, 1 - m / M, 0)
         additionMinusSubtraction = np.power(red, 2) + np.power(green, 2) + np.power(blue, 2) - red * green - red * blue - green * blue
         H = np.where(green >= blue,
-                     np.cos((red - green / 2.0 - blue / 2.0) / np.sqrt(additionMinusSubtraction)) ** (-1),
-                     360 - np.cos((red - green / 2.0 - blue / 2.0) / np.sqrt(additionMinusSubtraction)) ** (-1))
+                     np.cos((red - green / 2 - blue / 2) / np.sqrt(additionMinusSubtraction)) ** (-1),
+                     360 - np.cos((red - green / 2 - blue / 2) / np.sqrt(additionMinusSubtraction)) ** (-1))
 
         return BaseImage(np.dstack((H, S, L)), ColorModel.hsl)
 
@@ -159,7 +155,7 @@ class BaseImage:
         m = 255 * (L - 0.5 * d)
         x = d * (1 - np.fabs(((H / 60) % 2) - 1))
         r = np.where(H >= 300, 255 * d + m, np.where(H >= 240, 255 * x + m, np.where(H >= 120, m, np.where(H >= 60, 255 * x + m, 255 * d + m))))
-        g = np.where(H >= 240, m, np.where(H >= 180, 255 * x + m, np.where(H >= 120, 255 * d + m, np.where(H >= 60, 255 * d + m, 255 * x + m))))
+        g = np.where(H >= 240, m, np.where(H >= 180, 255 * x + m, np.where(H >= 60, 255 * d + m, 255 * x + m)))
         b = np.where(H >= 300, 255 * x + m, np.where(H >= 240, 255 * d + m, np.where(H >= 180, 255 * d + m, np.where(H >= 120, 255 * x + m, m))))
         return BaseImage(np.dstack((r, g, b)), ColorModel.rgb)
 
