@@ -26,12 +26,18 @@ class BaseImage:
         imsave('image.jpg', self.data)
 
     def show_img(self) -> None:
-        imshow(self.data)
+        if self.color_model == ColorModel.gray:
+            imshow(self.data, cmap='gray')
+        else:
+            imshow(self.data)
         plt.title(self.color_model.name)
         plt.show()
 
     def show_img_without_axis(self) -> None:
-        imshow(self.data)
+        if self.color_model == ColorModel.gray:
+            imshow(self.data, cmap='gray')
+        else:
+            imshow(self.data)
         plt.title(self.color_model.name)
         plt.axis('off')
         plt.show()
@@ -171,4 +177,3 @@ class BaseImage:
             return self.hsi_to_rgb()
         if self.color_model == ColorModel.hsl:
             return self.hsl_to_rgb()
-

@@ -7,3 +7,4 @@ class ColorModel(Enum):
     hsi = 2
     hsl = 3
     gray = 4  # obraz 2d
+    sepia = 5
