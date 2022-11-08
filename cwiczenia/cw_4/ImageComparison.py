@@ -1,7 +1,7 @@
 from WDGM_162441.cwiczenia.cw_2.BaseImage import BaseImage
 from WDGM_162441.cwiczenia.cw_3.Image import Image
-from Histogram import Histogram
-from ImageDiffMethod import ImageDiffMethod
+from WDGM_162441.cwiczenia.cw_4.Histogram import Histogram
+from WDGM_162441.cwiczenia.cw_4.ImageDiffMethod import ImageDiffMethod
 
 
 class ImageComparison(BaseImage):

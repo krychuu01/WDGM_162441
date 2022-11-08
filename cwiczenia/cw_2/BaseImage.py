@@ -8,7 +8,7 @@ from matplotlib.image import imsave
 from matplotlib.pyplot import imshow
 from math import sqrt, cos, acos, degrees, radians, pi
 
-from ColorModel import ColorModel
+from WDGM_162441.cwiczenia.cw_2.ColorModel import ColorModel
 
 
 class BaseImage:

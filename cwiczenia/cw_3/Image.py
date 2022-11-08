@@ -1,5 +1,5 @@
 
-from GrayScaleTransform import GrayScaleTransform
+from WDGM_162441.cwiczenia.cw_3.GrayScaleTransform import GrayScaleTransform
 
 
 class Image(GrayScaleTransform):
