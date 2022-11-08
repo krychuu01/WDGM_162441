@@ -1,7 +1,9 @@
+
 from typing import Any
 import numpy as np
-from cwiczenia.cw_2.BaseImage import BaseImage
-from cwiczenia.cw_2.ColorModel import ColorModel
+
+from WDGM_162441.cwiczenia.cw_2.BaseImage import BaseImage
+from WDGM_162441.cwiczenia.cw_2.ColorModel import ColorModel
 
 
 class GrayScaleTransform(BaseImage):
