@@ -1,10 +1,12 @@
 from typing import Any
 import numpy as np
-from WDGM_162441.cwiczenia.cw_2.BaseImage import BaseImage
-from WDGM_162441.cwiczenia.cw_2.ColorModel import ColorModel
+from cwiczenia.cw_2.BaseImage import BaseImage
+from cwiczenia.cw_2.ColorModel import ColorModel
 
 
 class GrayScaleTransform(BaseImage):
+    alpha_beta: tuple
+    w: int
 
     def __init__(self, data: Any, color_model: ColorModel) -> None:
         super().__init__(data, color_model)
@@ -12,6 +14,7 @@ class GrayScaleTransform(BaseImage):
     """
         metoda zwracajaca obraz w skali szarosci jako obiekt klasy BaseImage
     """
+
     def to_gray(self) -> BaseImage:
         r, g, b = self.get_img_layers()
         r_avg = r * 0.299
@@ -25,17 +28,31 @@ class GrayScaleTransform(BaseImage):
         sepia tworzona metoda 1 w przypadku przekazania argumentu alpha_beta
         lub metoda 2 w przypadku przekazania argumentu w
     """
+
     def to_sepia(self, alpha_beta: tuple = (None, None), w: int = None) -> BaseImage:
+        self.__set_alpha_beta_and_w(alpha_beta, w)
         gray_scale_img = self.to_gray()
         sepia = self.__transform_gray_scale_to_sepia(gray_scale_img, alpha_beta, w)
         return BaseImage(sepia, ColorModel.sepia)
 
+    def __set_alpha_beta_and_w(self, alpha_beta, w):
+        self.alpha_beta = alpha_beta
+        self.w = w
+
     def __transform_gray_scale_to_sepia(self, gray_scale_img, alpha_beta, w) -> []:
-        if alpha_beta[0] and alpha_beta[1] is not None:
+        if self.__alphabeta_and_w_given(alpha_beta, w):
+            raise Exception("You should specify either alpha_beta or w parameter, not two of them in the same time!")
+        if self.__alphabeta_given(alpha_beta):
             sepia = self.__use_alpha_beta(gray_scale_img, alpha_beta)
         if w is not None:
             sepia = self.__use_w(gray_scale_img, w)
         return sepia
+
+    def __alphabeta_given(self) -> bool:
+        return self.alpha_beta[0] and self.alpha_beta[1] is not None
+
+    def __alphabeta_and_w_given(self) -> bool:
+        return (self.alpha_beta[0] and self.alpha_beta[1] is not None) and self.w is not None
 
     def __use_alpha_beta(self, gray_scale_img, alpha_beta: tuple) -> []:
         alpha, beta = alpha_beta[0], alpha_beta[1]

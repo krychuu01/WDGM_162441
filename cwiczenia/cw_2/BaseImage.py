@@ -5,8 +5,9 @@ import numpy as np
 from matplotlib.image import imread
 from matplotlib.image import imsave
 from matplotlib.pyplot import imshow
+from math import sqrt, cos, acos, degrees, radians, pi
 
-from WDGM_162441.cwiczenia.cw_2.ColorModel import ColorModel
+from ColorModel import ColorModel
 
 
 class BaseImage:
@@ -133,11 +134,44 @@ class BaseImage:
             raise Exception("color_model must be hsi to use this method!")
         H, S, I = self.get_img_layers()
         IS = I * S
-        r = np.where(H > 240, I + IS * (1 - np.cos(H - 240) / np.cos(300 - H)), np.where(H >= 120, I - IS, np.where(H > 0, I + IS * np.cos(H)/np.cos(60-H), I + 2 * IS)))
+        r = np.where(H > 240, I + IS * (1 - np.cos(H - 240) / np.cos(300 - H)), np.where(H >= 120, I - IS, np.where(H > 0, I + IS * np.cos(H) / np.cos(60 - H), I + 2 * IS)))
         g = np.where(H >= 240, I - IS, np.where(H > 120, I + IS * np.cos(H - 120) / np.cos(180 - H), np.where(H == 120, I + 2 * IS, np.where(H > 0, I + IS * (1 - np.cos(H) / np.cos(60 - H)), I - IS))))
-        b = np.where(H > 240, I + IS * np.cos(H - 240) / np.cos(300 - H), np.where(H == 240, I + 2 * IS, np.where(H > 120, I + IS * (1 - np.cos(H - 120)/np.cos(180-H)), I - IS)))
+        b = np.where(H > 240, I + IS * np.cos(H - 240) / np.cos(300 - H), np.where(H == 240, I + 2 * IS, np.where(H > 120, I + IS * (1 - np.cos(H - 120) / np.cos(180 - H)), I - IS)))
 
         return BaseImage(np.dstack((r, g, b)), ColorModel.rgb)
+
+    def hsi_to_rgb_gotowiec(self) -> 'BaseImage':
+        for warstwa in self.data:
+            for pixel in warstwa:
+                pixel[0], pixel[1], pixel[2] = self.HSI_to_rgb_value(pixel[0], pixel[1], pixel[2])
+        return self
+
+    def rgb_to_hue(self, b, g, r):
+        if (b == g == r):
+            return 0
+
+        angle = 0.5 * ((r - g) + (r - b)) / sqrt(((r - g) ** 2) + (r - b) * (g - b))
+        if b <= g:
+            return acos(angle)
+        else:
+            return 2 * pi - acos(angle)
+    def HSI_to_rgb_value(self, h, s, i):
+        h = self.rgb_to_hue(h, s, i)
+        if 0 <= h <= 120:
+            b = i * (1 - s)
+            r = i * (1 + (s * cos(radians(h)) / cos(radians(60) - radians(h))))
+            g = i * 3 - (r + b)
+        elif 120 < h <= 240:
+            h -= 120
+            r = i * (1 - s)
+            g = i * (1 + (s * cos(radians(h)) / cos(radians(60) - radians(h))))
+            b = 3 * i - (r + g)
+        elif 0 < h <= 360:
+            h -= 240
+            g = i * (1 - s)
+            b = i * (1 + (s * cos(radians(h)) / cos(radians(60) - radians(h))))
+            r = i * 3 - (g + b)
+        return [r, g, b]
 
     def to_hsl(self) -> 'BaseImage':
         red, green, blue = self.get_img_layers() / 255
