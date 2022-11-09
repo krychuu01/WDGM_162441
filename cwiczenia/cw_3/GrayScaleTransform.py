@@ -42,19 +42,22 @@ class GrayScaleTransform(BaseImage):
         self.w = w
 
     def __transform_gray_scale_to_sepia(self, gray_scale_img, alpha_beta, w) -> []:
-        if self.__alphabeta_and_w_given(alpha_beta, w):
+        if self.__alphabeta_and_w_given():
             raise Exception("You should specify either alpha_beta or w parameter, not two of them in the same time!")
-        if self.__alphabeta_given(alpha_beta):
+        if self.__alphabeta_given():
             sepia = self.__use_alpha_beta(gray_scale_img, alpha_beta)
-        if w is not None:
+        if self.__w_given():
             sepia = self.__use_w(gray_scale_img, w)
         return sepia
+
+    def __w_given(self) -> bool:
+        return self.w is not None
 
     def __alphabeta_given(self) -> bool:
         return self.alpha_beta[0] and self.alpha_beta[1] is not None
 
     def __alphabeta_and_w_given(self) -> bool:
-        return (self.alpha_beta[0] and self.alpha_beta[1] is not None) and self.w is not None
+        return (self.alpha_beta[0] or self.alpha_beta[1] is not None) and self.w is not None
 
     def __use_alpha_beta(self, gray_scale_img, alpha_beta: tuple) -> []:
         alpha, beta = alpha_beta[0], alpha_beta[1]

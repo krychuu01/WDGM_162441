@@ -98,7 +98,7 @@ class BaseImage:
 
         return BaseImage(np.dstack((H, S, V)), ColorModel.hsv)
 
-    def hsv_to_rgb(self) -> 'BaseImage':
+    def __hsv_to_rgb(self) -> 'BaseImage':
         if self.color_model != ColorModel.hsv:
             raise Exception("color_model must be hsv to use this method!")
         H, S, V = self.get_img_layers()
@@ -130,7 +130,7 @@ class BaseImage:
 
         return BaseImage(np.dstack((H, S, I)), ColorModel.hsi)
 
-    def hsi_to_rgb(self) -> 'BaseImage':
+    def __hsi_to_rgb(self) -> 'BaseImage':
         if self.color_model != ColorModel.hsi:
             raise Exception("color_model must be hsi to use this method!")
         H, S, I = self.get_img_layers()
@@ -141,13 +141,13 @@ class BaseImage:
 
         return BaseImage(np.dstack((r, g, b)), ColorModel.rgb)
 
-    def hsi_to_rgb_gotowiec(self) -> 'BaseImage':
+    def __hsi_to_rgb_gotowiec(self) -> 'BaseImage':
         for warstwa in self.data:
             for pixel in warstwa:
                 pixel[0], pixel[1], pixel[2] = self.HSI_to_rgb_value(pixel[0], pixel[1], pixel[2])
         return self
 
-    def rgb_to_hue(self, b, g, r):
+    def __rgb_to_hue(self, b, g, r):
         if (b == g == r):
             return 0
 
@@ -156,7 +156,7 @@ class BaseImage:
             return acos(angle)
         else:
             return 2 * pi - acos(angle)
-    def HSI_to_rgb_value(self, h, s, i):
+    def __HSI_to_rgb_value(self, h, s, i):
         h = self.rgb_to_hue(h, s, i)
         if 0 <= h <= 120:
             b = i * (1 - s)
@@ -188,7 +188,7 @@ class BaseImage:
 
         return BaseImage(np.dstack((H, S, L)), ColorModel.hsl)
 
-    def hsl_to_rgb(self) -> 'BaseImage':
+    def __hsl_to_rgb(self) -> 'BaseImage':
         if self.color_model != ColorModel.hsl:
             raise Exception("to use this method, color model of img must be hsl!")
         H, S, L = self.get_img_layers()
@@ -207,8 +207,8 @@ class BaseImage:
 
     def to_rgb(self) -> 'BaseImage':
         if self.color_model == ColorModel.hsv:
-            return self.hsv_to_rgb()
+            return self.__hsv_to_rgb()
         if self.color_model == ColorModel.hsi:
-            return self.hsi_to_rgb()
+            return self.__hsi_to_rgb()
         if self.color_model == ColorModel.hsl:
-            return self.hsl_to_rgb()
+            return self.__hsl_to_rgb()
