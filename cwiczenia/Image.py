@@ -1,6 +1,6 @@
 
-from WDGM_162441.cwiczenia.cw_3.GrayScaleTransform import GrayScaleTransform
-from WDGM_162441.cwiczenia.cw_4.ImageComparison import ImageComparison
+from GrayScaleTransform import GrayScaleTransform
+from ImageComparison import ImageComparison
 
 
 class Image(GrayScaleTransform, ImageComparison):

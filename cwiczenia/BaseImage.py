@@ -6,9 +6,9 @@ import numpy as np
 from matplotlib.image import imread
 from matplotlib.image import imsave
 from matplotlib.pyplot import imshow
-from math import sqrt, cos, acos, degrees, radians, pi
+from math import sqrt, cos, acos, radians, pi
 
-from WDGM_162441.cwiczenia.cw_2.ColorModel import ColorModel
+from ColorModel import ColorModel
 
 
 class BaseImage:

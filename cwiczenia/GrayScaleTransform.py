@@ -2,8 +2,8 @@
 from typing import Any
 import numpy as np
 
-from WDGM_162441.cwiczenia.cw_2.BaseImage import BaseImage
-from WDGM_162441.cwiczenia.cw_2.ColorModel import ColorModel
+from BaseImage import BaseImage
+from ColorModel import ColorModel
 
 
 class GrayScaleTransform(BaseImage):
