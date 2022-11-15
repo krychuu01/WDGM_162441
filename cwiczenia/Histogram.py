@@ -33,7 +33,7 @@ class Histogram:
     def __show_single_histogram(self):
         plt.figure(figsize=(5, 6))
         plt.title("gray scale")
-        plt.xlim([0, 256])
+        plt.xlim([-5, 260])
         bin_edges = np.linspace(0, 255, 256)
         plt.plot(bin_edges, self.values, color="gray")
 
@@ -44,7 +44,7 @@ class Histogram:
         for layer in self.__get_img_layers():
             plt.subplot(1, 3, num)
             plt.title(self.__color_num(num))
-            plt.xlim([0, 256])
+            plt.xlim([-5, 260])
             plt.plot(bin_edges, layer, color=self.__color_num(num))
             num += 1
 

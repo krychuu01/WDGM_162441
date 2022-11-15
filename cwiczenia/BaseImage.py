@@ -1,4 +1,3 @@
-
 from typing import Any
 
 import matplotlib.pyplot as plt
@@ -77,7 +76,7 @@ class BaseImage:
         metoda zwracajaca warstwe o wskazanym indeksie
     """
 
-    def get_layer(self, layer_id: int) -> 'BaseImage':
+    def get_layer(self, layer_id: int) -> 'np.ndarray':
         return self.data[:, :, layer_id]
 
     """
@@ -91,7 +90,8 @@ class BaseImage:
         m = np.min([red, green, blue], axis=0)
         V = M / 255
         S = np.where(M > 0, 1 - m / M, 0)
-        additionMinusSubtraction = np.power(red, 2) + np.power(green, 2) + np.power(blue, 2) - red * green - red * blue - green * blue
+        additionMinusSubtraction = np.power(red, 2) + np.power(green, 2) + np.power(blue,
+                                                                                    2) - red * green - red * blue - green * blue
         H = np.where(green >= blue,
                      np.cos((red - green / 2 - blue / 2) / np.sqrt(additionMinusSubtraction)) ** (-1),
                      360 - np.cos((red - green / 2 - blue / 2) / np.sqrt(additionMinusSubtraction)) ** (-1))
@@ -110,7 +110,6 @@ class BaseImage:
         b = np.where(H >= 300, m, np.where(H >= 240, M, np.where(H >= 120, z + m, m)))
 
         return BaseImage(np.dstack((r, g, b)), ColorModel.rgb)
-
 
     """
         metoda dokonujaca konwersji obrazu w atrybucie data do modelu hsi
@@ -134,45 +133,29 @@ class BaseImage:
         if self.color_model != ColorModel.hsi:
             raise Exception("color_model must be hsi to use this method!")
         H, S, I = self.get_img_layers()
-        IS = I * S
-        r = np.where(H > 240, I + IS * (1 - np.cos(H - 240) / np.cos(300 - H)), np.where(H >= 120, I - IS, np.where(H > 0, I + IS * np.cos(H) / np.cos(60 - H), I + 2 * IS)))
-        g = np.where(H >= 240, I - IS, np.where(H > 120, I + IS * np.cos(H - 120) / np.cos(180 - H), np.where(H == 120, I + 2 * IS, np.where(H > 0, I + IS * (1 - np.cos(H) / np.cos(60 - H)), I - IS))))
-        b = np.where(H > 240, I + IS * np.cos(H - 240) / np.cos(300 - H), np.where(H == 240, I + 2 * IS, np.where(H > 120, I + IS * (1 - np.cos(H - 120) / np.cos(180 - H)), I - IS)))
-
+        for layer in self.data:
+            for pixel in layer:
+                H, S, I = pixel[0], pixel[1], pixel[2]
+                S = S * 0.5
+                if 0 <= H <= 120:
+                    pixel[2] = I * (1 - S)
+                    pixel[0] = I * (1 + (S * np.cos(np.radians(H)) / np.cos(np.radians(60) - np.radians(H))))
+                    pixel[1] = I * 3 - (pixel[0] + pixel[2])
+                elif 120 < H <= 240:
+                    H = H - 120
+                    pixel[0] = I * (1 - S)
+                    pixel[1] = I * (1 + (S * np.cos(np.radians(H)) / np.cos(np.radians(60) - np.radians(H))))
+                    pixel[2] = 3 * I - (pixel[0] + pixel[1])
+                elif 0 < H <= 360:
+                    H = H - 240
+                    pixel[1] = I * (1 - S)
+                    pixel[2] = I * (1 + (S * np.cos(np.radians(H)) / np.cos(np.radians(60) - np.radians(H))))
+                    pixel[0] = I * 3 - (pixel[1] + pixel[2])
+        r = self.get_layer(0)
+        g = self.get_layer(1)
+        b = self.get_layer(2)
+        r[r > 1] = 1
         return BaseImage(np.dstack((r, g, b)), ColorModel.rgb)
-
-    def __hsi_to_rgb_gotowiec(self) -> 'BaseImage':
-        for warstwa in self.data:
-            for pixel in warstwa:
-                pixel[0], pixel[1], pixel[2] = self.HSI_to_rgb_value(pixel[0], pixel[1], pixel[2])
-        return self
-
-    def __rgb_to_hue(self, b, g, r):
-        if (b == g == r):
-            return 0
-
-        angle = 0.5 * ((r - g) + (r - b)) / sqrt(((r - g) ** 2) + (r - b) * (g - b))
-        if b <= g:
-            return acos(angle)
-        else:
-            return 2 * pi - acos(angle)
-    def __HSI_to_rgb_value(self, h, s, i):
-        h = self.rgb_to_hue(h, s, i)
-        if 0 <= h <= 120:
-            b = i * (1 - s)
-            r = i * (1 + (s * cos(radians(h)) / cos(radians(60) - radians(h))))
-            g = i * 3 - (r + b)
-        elif 120 < h <= 240:
-            h -= 120
-            r = i * (1 - s)
-            g = i * (1 + (s * cos(radians(h)) / cos(radians(60) - radians(h))))
-            b = 3 * i - (r + g)
-        elif 0 < h <= 360:
-            h -= 240
-            g = i * (1 - s)
-            b = i * (1 + (s * cos(radians(h)) / cos(radians(60) - radians(h))))
-            r = i * 3 - (g + b)
-        return [r, g, b]
 
     def to_hsl(self) -> 'BaseImage':
         red, green, blue = self.get_img_layers() / 255
@@ -181,7 +164,8 @@ class BaseImage:
         L = (0.5 * (M + m)) / 255
         d = (M - m) / 255
         S = np.where(L > 0, d / (1 - np.fabs(2 * L - 1)), 0)
-        additionMinusSubtraction = np.power(red, 2) + np.power(green, 2) + np.power(blue, 2) - red * green - red * blue - green * blue
+        additionMinusSubtraction = np.power(red, 2) + np.power(green, 2) + np.power(blue,
+                                                                                    2) - red * green - red * blue - green * blue
         H = np.where(green >= blue,
                      np.cos((red - green / 2 - blue / 2) / np.sqrt(additionMinusSubtraction)) ** (-1),
                      360 - np.cos((red - green / 2 - blue / 2) / np.sqrt(additionMinusSubtraction)) ** (-1))
@@ -195,9 +179,15 @@ class BaseImage:
         d = S * (1 - np.fabs(2 * L - 1))
         m = 255 * (L - 0.5 * d)
         x = d * (1 - np.fabs(((H / 60) % 2) - 1))
-        r = np.where(H >= 300, 255 * d + m, np.where(H >= 240, 255 * x + m, np.where(H >= 120, m, np.where(H >= 60, 255 * x + m, 255 * d + m))))
+        r = np.where(H >= 300, 255 * d + m, np.where(H >= 240, 255 * x + m, np.where(H >= 120, m,
+                                                                                     np.where(H >= 60, 255 * x + m,
+                                                                                              255 * d + m))))
         g = np.where(H >= 240, m, np.where(H >= 180, 255 * x + m, np.where(H >= 60, 255 * d + m, 255 * x + m)))
-        b = np.where(H >= 300, 255 * x + m, np.where(H >= 240, 255 * d + m, np.where(H >= 180, 255 * d + m, np.where(H >= 120, 255 * x + m, m))))
+        b = np.where(H >= 300, 255 * x + m, np.where(H >= 240, 255 * d + m, np.where(H >= 180, 255 * d + m,
+                                                                                     np.where(H >= 120, 255 * x + m,
+                                                                                              m))))
+        g[g < 0] = 0
+        r[r > 1] = 0
         return BaseImage(np.dstack((r, g, b)), ColorModel.rgb)
 
     """
