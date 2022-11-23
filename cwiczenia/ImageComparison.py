@@ -30,20 +30,19 @@ class ImageComparison(BaseImage):
         return Histogram(self.data)
 
     def __count_mse(self, other: BaseImage) -> float:
-        first_img = self.__get_histogram(self)
-        second_img = self.__get_histogram(other)
+        first_img = self.__get_histogram(self).values
+        second_img = self.__get_histogram(other).values
         sum_ = 0
-        n = 3
+        n = len(first_img)
         for i in range(n):
-            sum_ += (first_img.values[i] - second_img.values[i]) ** 2
-        return sum_
+            sum_ += (first_img[i] - second_img[i]) ** 2
+        return sum_ * 1/n
 
     def __count_rmse(self, other) -> float:
-        first_img = self.__get_histogram(self)
-        second_img = self.__get_histogram(other)
+        first_img = self.__get_histogram(self).values
+        second_img = self.__get_histogram(other).values
         sum_ = 0
-        n = 3
+        n = len(first_img)
         for i in range(n):
-            sum_ += (first_img.values[i] - second_img.values[i]) ** 2
-            sum_ = math.sqrt(sum_)
-        return sum_
+            sum_ += 1/n * (first_img[i] - second_img[i]) ** 2
+        return math.sqrt(sum_) * 1/n

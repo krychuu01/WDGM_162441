@@ -1,4 +1,3 @@
-import sys
 
 from BaseImage import BaseImage
 from GrayScaleTransform import GrayScaleTransform
@@ -7,22 +6,29 @@ from Histogram import Histogram
 from ImageComparison import ImageComparison
 from ImageDiffMethod import ImageDiffMethod
 
-# sys.path.append("C:\\Users\\local\\Videos\\WDGM_162441\\cwiczenia\\cw_2")
-# sys.path.append("C:\\Users\\local\\Videos\\WDGM_162441\\cwiczenia\\cw_3")
-# sys.path.append("C:\\Users\\local\\Videos\\WDGM_162441\\cwiczenia\\cw_4")
+
+# img_rgb = BaseImage('lena.jpg', color_model=ColorModel.rgb)
+#
+# img_hsv = img_rgb.to_hsv()
+#
+# img_hsv_konwersja_do_rgb_dlugi_wzor = img_hsv.hsv_to_rgb()
+# img_hsv_konwersja_do_rgb_skrocony_wzor = img_hsv.hsv_to_rgb_skrocony_wzor()
+#
+# porownanie = ImageComparison(img_hsv_konwersja_do_rgb_dlugi_wzor.data, img_hsv_konwersja_do_rgb_dlugi_wzor.color_model)
+# wartosc_porownania = porownanie.compare_to(img_hsv_konwersja_do_rgb_skrocony_wzor, ImageDiffMethod.mse)
+#
+# print(f'wartosc po porownaniu obrazka z dlugiego wzoru z obrazkiem ze skroconego wzoru: {wartosc_porownania}')
+#
+# img_hsv_konwersja_do_rgb_dlugi_wzor.show_img_without_axis()
 
 img_rgb = BaseImage('lena.jpg', color_model=ColorModel.rgb)
-img2 = img_rgb
-img3 = img_rgb
-img4 = img_rgb
-# img_rgb = img_rgb.to_hsv().to_rgb()
-img2 = img2.to_hsv()
-img3 = img3.to_hsi()
-img4 = img4.to_hsl()
-# img2.show_img_without_axis()
-# img2.show_img_without_axis()
 
-# var = ImageComparison(img_rgb.data, img_rgb.color_model)
-# val = var.compare_to(img2, ImageDiffMethod.rmse)
+img_hsv = img_rgb.to_hsv()
+img_hsv = img_hsv.to_rgb()
 
-# print(val)
+img_rgb = ImageComparison(img_rgb.data, img_rgb.color_model)
+
+val = img_rgb.compare_to(img_hsv, ImageDiffMethod.mse)
+
+print(val)
+
