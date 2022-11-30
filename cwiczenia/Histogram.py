@@ -19,12 +19,15 @@ class Histogram:
             third_layer = np.histogram(third_layer, bins=256, range=(0, 255))[0]
             self.values = np.dstack((first_layer, second_layer, third_layer))
 
+    def to_cumulated(self) -> 'Histogram':
+
+        pass
     """
         metoda wyswietlajaca histogram na podstawie atrybutu values
     """
 
     def plot(self) -> None:
-        if self.__is_three_dimensional():
+        if self.is_three_dimensional():
             self.__show_multiple_histograms()
         else:
             self.__show_single_histogram()
@@ -41,7 +44,7 @@ class Histogram:
         plt.figure(figsize=(15, 6))
         num = 1
         bin_edges = np.linspace(0, 255, 256)
-        for layer in self.__get_img_layers():
+        for layer in self.get_img_layers():
             plt.subplot(1, 3, num)
             plt.title(self.__color_num(num))
             plt.xlim([-5, 260])
@@ -56,11 +59,11 @@ class Histogram:
         if num == 3:
             return "blue"
 
-    def __get_img_layers(self) -> []:
+    def get_img_layers(self) -> []:
         return np.squeeze(np.dsplit(self.values, self.values.shape[-1]))
 
-    def __get_dimension(self) -> int:
+    def get_dimension(self) -> int:
         return self.values.ndim
 
-    def __is_three_dimensional(self) -> bool:
-        return self.__get_dimension() == 3
+    def is_three_dimensional(self) -> bool:
+        return self.get_dimension() == 3

@@ -10,8 +10,8 @@ class GrayScaleTransform(BaseImage):
     alpha_beta: tuple
     w: int
 
-    def __init__(self, data: Any, color_model: ColorModel) -> None:
-        super().__init__(data, color_model)
+    def __init__(self, baseImg : BaseImage) -> None:
+        super().__init__(baseImg.data, baseImg.color_model)
 
     """
         metoda zwracajaca obraz w skali szarosci jako obiekt klasy BaseImage
