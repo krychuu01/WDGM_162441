@@ -19,9 +19,10 @@ class Histogram:
             third_layer = np.histogram(third_layer, bins=256, range=(0, 255))[0]
             self.values = np.dstack((first_layer, second_layer, third_layer))
 
+    # dodać kumulowany dla 3-warstwowych obrazow
     def to_cumulated(self) -> 'Histogram':
-
-        pass
+        self.values = np.cumsum(self.values)
+        return self
     """
         metoda wyswietlajaca histogram na podstawie atrybutu values
     """
