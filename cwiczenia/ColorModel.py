@@ -9,3 +9,6 @@ class ColorModel(Enum):
     hsl = 3
     gray = 4  # obraz 2d
     sepia = 5
+
+    def is_gray(self):
+        return self == ColorModel.gray

@@ -8,17 +8,20 @@ from ImageDiffMethod import ImageDiffMethod
 from ImageAligning import ImageAligning
 
 
-img_rgb = BaseImage('lena.jpg', color_model=ColorModel.rgb)
+base_img = BaseImage('lena.jpg', color_model=ColorModel.rgb)
 
-img_align = ImageAligning(img_rgb)
+img_rgb = base_img
+# img_rgb = GrayScaleTransform(img_rgb).to_gray()
+img_rgb.show_img_without_axis()
+# img_rgb_hist = Histogram(img_rgb.data)
+# img_rgb_hist.plot()
 
-img_rgb = GrayScaleTransform(img_rgb).to_gray()
-img_rgb_align = img_align.align_image()
+img_rgb_aligned = ImageAligning(img_rgb).align_image(tail_elimination=False)
+img_rgb_aligned.show_img_without_axis()
 
+comp = ImageComparison(img_rgb)
+val = comp.compare_to(img_rgb_aligned, method=ImageDiffMethod.rmse)
+print(val)
 
-img_rgb = Histogram(img_rgb.data)
-img_rgb.plot()
-
-img_rgb_align = Histogram(img_rgb_align.data)
-img_rgb_align.plot()
-
+# img_rgb_align = Histogram(img_rgb_aligned.data)
+# img_rgb_align.plot()

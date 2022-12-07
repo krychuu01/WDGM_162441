@@ -4,6 +4,7 @@ from BaseImage import BaseImage
 from Histogram import Histogram
 from ImageDiffMethod import ImageDiffMethod
 from GrayScaleTransform import GrayScaleTransform
+from ColorModel import ColorModel
 
 """
     Klasa reprezentujaca obraz, jego histogram oraz metody porównania
@@ -24,13 +25,11 @@ class ImageComparison(BaseImage):
             return self.__count_mse(other)
         if method == ImageDiffMethod.rmse:
             return self.__count_rmse(other)
-    @classmethod
-    def get_histogram(cls, baseImg: BaseImage) -> Histogram:
-        gray = GrayScaleTransform(baseImg).to_gray()
-        return Histogram(gray.data)
 
-    def histogram(self) -> Histogram:
-        return Histogram(self.data)
+    def get_histogram(self, baseImg: BaseImage) -> Histogram:
+        if baseImg.color_model != ColorModel.gray:
+            baseImg = GrayScaleTransform(baseImg).to_gray()
+        return Histogram(baseImg.data)
 
     def __count_mse(self, other: BaseImage) -> float:
         first_img = self.get_histogram(self).values

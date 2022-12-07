@@ -18,12 +18,15 @@ class GrayScaleTransform(BaseImage):
     """
 
     def to_gray(self) -> BaseImage:
+        if self.color_model != ColorModel.rgb:
+            raise Exception("Color model must be RGB!")
         r, g, b = self.get_img_layers()
-        r_avg = r * 0.299
-        g_avg = g * 0.587
-        b_avg = b * 0.114
-        gray_scale = r_avg + g_avg + b_avg
-        return BaseImage(gray_scale, ColorModel.gray)
+        r_avg = np.multiply(r, 0.299)
+        g_avg = np.multiply(g, 0.587)
+        b_avg = np.multiply(b, 0.114)
+        gray_scale = np.add(r_avg, g_avg, b_avg)
+        # gray_scale = r_avg + g_avg + b_avg # mniejsze roznice na histogramie, tzn. mniej pionowych kresek
+        return BaseImage(gray_scale.astype('uint8'), ColorModel.gray)
 
     """
         metoda zwracajaca obraz w sepii jako obiekt klasy BaseImage
