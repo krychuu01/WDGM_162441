@@ -79,61 +79,57 @@ class BaseImage:
     def get_layer(self, layer_id: int) -> 'np.ndarray':
         return self.data[:, :, layer_id]
 
+    def __calculate_H(self, r, g, b):
+        r = r.astype(int)
+        g = g.astype(int)
+        b = b.astype(int)
+        calc = np.power(r, 2) + np.power(g, 2) + np.power(b, 2) - (r * g) - (r * b) - (g * b)
+        calc_sqrt = np.sqrt(calc)
+        calc_sqrt[calc_sqrt == 0] = 1
+        H = np.where(g >= b,
+                     np.arccos((r - (g / 2) - (b / 2)) / calc_sqrt) * 180 / pi,
+                     360 - np.arccos(((r - (g / 2) - (b / 2)) / calc_sqrt)) * 180 / pi)
+        return H
+
     """
         metoda dokonujaca konwersji obrazu w atrybucie data do modelu hsv
         metoda zwraca nowy obiekt klasy image zawierajacy obraz w docelowym modelu barw
     """
-
     def to_hsv(self) -> 'BaseImage':
-        red, green, blue = self.get_img_layers() / 255
-        M = np.max([red, green, blue], axis=0)
-        m = np.min([red, green, blue], axis=0)
-        V = M / 255
-        S = np.where(M > 0, 1 - m / M, 0)
-        additionMinusSubtraction = np.power(red, 2) + np.power(green, 2) + np.power(blue, 2) - red * green - red * blue - green * blue
-
-        H = np.cos((red - green / 2 - blue / 2) / np.sqrt(additionMinusSubtraction)) ** (-1)
-        H = H - 1
+        if self.color_model != ColorModel.rgb:
+            raise Exception("Color model must be rgb!")
+        red, green, blue = self.get_img_layers()
+        MAX = np.max([red, green, blue], axis=0)
+        MAX[MAX == 0] = 255
+        MIN = np.min([red, green, blue], axis=0)
+        H = self.__calculate_H(red, green, blue)
+        S = np.where(MAX == 0, 0, (1 - MIN/MAX))
+        V = MAX / 255
         return BaseImage(np.dstack((H, S, V)), ColorModel.hsv)
 
-    def hsv_to_rgb(self) -> 'BaseImage':
+    def __hsv_to_rgb(self) -> 'BaseImage':
         if self.color_model != ColorModel.hsv:
             raise Exception("color_model must be hsv to use this method!")
         H, S, V = self.get_img_layers()
-        M = 255 * V
-        m = M * (1 - S)
-        z = (M - m) * (1 - np.fabs(((H / 60) % 2) - 1))
+        C = V * S
+        X = C * (1 - abs(((H / 60) % 2) - 1))
+        m = V - C
 
-        H = H * 360
+        r = np.where(H >= 300, C, np.where(H >= 240, X, np.where(H >= 120, 0, np.where(H >= 60, X, C))))
+        g = np.where(H >= 240, 0, np.where(H >= 180, X, np.where(H >= 60, C, X)))
+        b = np.where(H >= 300, X, np.where(H >= 180, C, np.where(H >= 120, X, 0)))
 
-        r = np.where(H > 300, M, np.where(H >= 240, z + m, np.where(H >= 120, m, np.where(H >= 60, z + m, M))))
-        g = np.where(H > 300, z + m, np.where(H >= 240, m, np.where(H >= 120, M, np.where(H >= 60, M, z + m))))
-        b = np.where(H > 300, m, np.where(H >= 240, M, np.where(H >= 120, z + m, m)))
-
-        r = r * 255
-        g = g * 255
-        b = b * 255
-
-        return BaseImage(np.dstack((r, g, b)).astype('uint8'), ColorModel.rgb)
-
-    def hsv_to_rgb_skrocony_wzor(self) -> 'BaseImage':
-        if self.color_model != ColorModel.hsv:
-            raise Exception("color_model must be hsv to use this method!")
-        H, S, V = self.get_img_layers()
-        M = 255 * V
-        m = M * (1 - S)
-        z = (M - m) * (1 - np.fabs(((H / 60) % 2) - 1))
-
-        r = M
-        g = z + m
-        b = m
-
-        r = r * 255
-        g = g * 255
-        b = b * 255
+        r = (r + m) * 255
+        g = (g + m) * 255
+        b = (b + m) * 255
+        g[g > 255] = 255
+        b[b > 255] = 255
+        r[r > 255] = 255
+        r[r < 0] = 0
+        g[g < 0] = 0
+        b[b < 0] = 0
 
         return BaseImage(np.dstack((r, g, b)).astype('uint8'), ColorModel.rgb)
-
 
 
     """
@@ -142,13 +138,18 @@ class BaseImage:
     """
 
     def to_hsi(self) -> 'BaseImage':
-        red, green, blue = self.get_img_layers() / 255
-        M = np.max([red, green, blue], axis=0)
-        m = np.min([red, green, blue], axis=0)
-        I = (red + green + blue) / 3
-        S = np.where(M > 0, 1 - m / M, 0)
-        additionMinusSubtraction = red ** 2 + green ** 2 + blue ** 2 - red * green - red * blue - green * blue
-        H = np.cos((red - green / 2 - blue / 2) / np.sqrt(additionMinusSubtraction)) ** (-1)
+        if self.color_model != ColorModel.rgb:
+            raise Exception("Color model must be RGB!")
+        red, green, blue = np.float32(self.get_img_layers())
+        sum_ = red + green + blue
+        sum_[sum_ == 0] = 255
+        r = red / sum_
+        g = green / sum_
+        b = blue / sum_
+        MIN = np.min([r, g, b], axis=0)
+        H = self.__calculate_H(red, green, blue)
+        S = 1 - 3 * MIN
+        I = (red + green + blue) / (3 * 255)
 
         return BaseImage(np.dstack((H, S, I)), ColorModel.hsi)
 
@@ -156,27 +157,65 @@ class BaseImage:
         if self.color_model != ColorModel.hsi:
             raise Exception("color_model must be hsi to use this method!")
         H, S, I = self.get_img_layers()
-        IS = I * S
-        H = H * 255
-        r = np.where(H > 240, I + IS * (1 - np.cos(H - 240)/np.cos(300 - H)), np.where(H == 240, I - IS, np.where(H >= 120, I - IS, np.where(H > 0, I + IS * np.cos(H)/np.cos(H - 60), I + 2 * IS))))
-        g = np.where(H >= 240, I - IS, np.where(H > 120, I + IS * np.cos(H - 120)/np.cos(180 - H), np.where(H == 120, I + 2 * IS, np.where(H > 0, I + IS * (1 - np.cos(H)/np.cos(60 - H)), I - IS))))
-        b = np.where(H > 240, I + IS * np.cos(H - 240)/np.cos(300 - H), np.where(H == 240, I + 2 * IS, np.where(H > 120, I + IS * (1 - np.cos(H - 120)/np.cos(180 - H)), np.where(H > 120, I + IS * (1 - np.cos(H)/np.cos(60 - H)), I - IS))))
-
+        h = H * np.pi / 180
+        s = S
+        i = I
+        rows = self.data.shape[0]
+        columns = self.data.shape[1]
+        r = np.zeros((rows, columns))
+        g = np.zeros((rows, columns))
+        b = np.zeros((rows, columns))
+        for k in range(rows):
+            for j in range(columns):
+                if h[k, j] < np.pi * 2 / 3:
+                    x = i[k, j] * (1 - s[k, j])
+                    y = i[k, j] * (1 + s[k, j] * np.cos(h[k, j]) / np.cos(np.pi / 3 - h[k, j]))
+                    z = 3 * i[k, j] - (x + y)
+                    r[k, j] = y
+                    g[k, j] = z
+                    b[k, j] = x
+                if np.pi * 2 / 3 <= h[k, j] < np.pi * 4 / 3:
+                    h[k, j] = h[k, j] - np.pi * 2 / 3
+                    x = i[k, j] * (1 - s[k, j])
+                    y = i[k, j] * (1 + s[k, j] * np.cos(h[k, j]) / np.cos(np.pi / 3 - h[k, j]))
+                    z = 3 * i[k, j] - (x + y)
+                    r[k, j] = x
+                    g[k, j] = y
+                    b[k, j] = z
+                if np.pi * 4 / 3 < h[k, j] < np.pi * 2:
+                    h[k, j] = h[k, j] - np.pi * 4 / 3
+                    x = i[k, j] * (1 - s[k, j])
+                    y = i[k, j] * (1 + s[k, j] * np.cos(h[k, j]) / np.cos(np.pi / 3 - h[k, j]))
+                    z = 3 * i[k, j] - (x + y)
+                    r[k, j] = z
+                    g[k, j] = x
+                    b[k, j] = y
+        r[r > 1] = 1
+        g[g > 1] = 1
+        b[b > 1] = 1
+        r = r * 255
+        g = g * 255
+        b = b * 255
+        r[r < 0] = 0
+        g[g < 0] = 0
+        b[b < 0] = 0
         return BaseImage(np.dstack((r, g, b)).astype('uint8'), ColorModel.rgb)
 
 
     def to_hsl(self) -> 'BaseImage':
-        red, green, blue = self.get_img_layers() / 255
-        M = np.max([red, green, blue], axis=0)
-        m = np.min([red, green, blue], axis=0)
-        L = (0.5 * (M + m)) / 255
-        d = (M - m) / 255
-        S = np.where(L > 0, d / (1 - np.fabs(2 * L - 1)), 0)
-        additionMinusSubtraction = np.power(red, 2) + np.power(green, 2) + np.power(blue,
-                                                                                    2) - red * green - red * blue - green * blue
-        H = np.where(green >= blue,
-                     np.cos((red - green / 2 - blue / 2) / np.sqrt(additionMinusSubtraction)) ** (-1),
-                     360 - np.cos((red - green / 2 - blue / 2) / np.sqrt(additionMinusSubtraction)) ** (-1))
+        if self.color_model != ColorModel.rgb:
+            raise Exception("Color model must be rgb!")
+        red, green, blue = self.get_img_layers()
+        MAX = np.max([red, green, blue], axis=0)
+        MIN = np.min([red, green, blue], axis=0)
+        D = (MAX - MIN) / 255
+        H = self.__calculate_H(red, green, blue)
+        L = (0.5 * (MAX.astype(int) + MIN.astype(int))).astype(int) / 255
+        calc = (1 - abs(2 * L - 1))
+        calc[calc == 0] = 1
+        S = np.where(L > 0, D / calc, 0)
+        S[S > 1] = 1
+        S[S < 0] = 0.001
 
         return BaseImage(np.dstack((H, S, L)), ColorModel.hsl)
 
@@ -184,19 +223,30 @@ class BaseImage:
         if self.color_model != ColorModel.hsl:
             raise Exception("to use this method, color model of img must be hsl!")
         H, S, L = self.get_img_layers()
-        d = S * (1 - np.fabs(2 * L - 1))
-        m = 255 * (L - 0.5 * d)
-        x = d * (1 - np.fabs(((H / 60) % 2) - 1))
-        r = np.where(H >= 300, 255 * d + m, np.where(H >= 240, 255 * x + m, np.where(H >= 120, m,
-                                                                                     np.where(H >= 60, 255 * x + m,
-                                                                                              255 * d + m))))
-        g = np.where(H >= 240, m, np.where(H >= 180, 255 * x + m, np.where(H >= 60, 255 * d + m, 255 * x + m)))
-        b = np.where(H >= 300, 255 * x + m, np.where(H >= 240, 255 * d + m, np.where(H >= 180, 255 * d + m,
-                                                                                     np.where(H >= 120, 255 * x + m,
-                                                                                              m))))
+        d = S * (1 - abs(2 * L - 1))
+        MIN = 255 * (L - 0.5 * d)
+        x = d * (1 - abs(H / 60 % 2 - 1))
+        r = np.where(H >= 300, 255 * d + MIN,
+                     np.where(H >= 240, 255 * x + MIN,
+                              np.where(H >= 180, MIN,
+                                       np.where(H >= 120, MIN,
+                                                np.where(H >= 60, 255 * x + MIN, 255 * d + MIN)))))
+        g = np.where(H >= 300, MIN,
+                     np.where(H >= 240, MIN,
+                              np.where(H >= 180, 255 * x + MIN,
+                                       np.where(H >= 120, 255 * d + MIN,
+                                                np.where(H >= 60, 255 * d + MIN, 255 * x + MIN)))))
+        b = np.where(H >= 300, 255 * x + MIN,
+                     np.where(H >= 240, 255 * d + MIN,
+                              np.where(H >= 180, 255 * d + MIN,
+                                       np.where(H >= 120, 255 * x + MIN, MIN))))
+        g[g > 255] = 255
+        b[b > 255] = 255
+        r[r > 255] = 255
+        r[r < 0] = 0
         g[g < 0] = 0
-        r[r > 1] = 0
-        return BaseImage(np.dstack((r, g, b)), ColorModel.rgb)
+        b[b < 0] = 0
+        return BaseImage(np.dstack((r, g, b)).astype('uint8'), ColorModel.rgb)
 
     """
         metoda dokonujaca konwersji obrazu w atrybucie data do modelu rgb
@@ -205,7 +255,7 @@ class BaseImage:
 
     def to_rgb(self) -> 'BaseImage':
         if self.color_model == ColorModel.hsv:
-            return self.hsv_to_rgb()
+            return self.__hsv_to_rgb()
         if self.color_model == ColorModel.hsi:
             return self.__hsi_to_rgb()
         if self.color_model == ColorModel.hsl:

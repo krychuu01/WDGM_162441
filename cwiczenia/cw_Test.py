@@ -13,21 +13,24 @@ from ImageFiltration import ImageFiltration
 from Filter import Filter
 
 base_img = BaseImage('lena.jpg', color_model=ColorModel.rgb)
-
-base_img = GrayScaleTransform(base_img).to_gray()
+hsv = base_img.to_hsl().to_rgb()
+hsv.show_img_without_axis()
+# base_img = GrayScaleTransform(base_img).to_gray()
 # thr = Thresholding(base_img)
 # thr = thr.threshold(117)
 # thr.show_img_without_axis()
-filtered = ImageFiltration().conv_2d(base_img, Filter.GAUSSIAN_BLUR_3x3, 1/16)
+# filtered = ImageFiltration().conv_2d(base_img, Filter.GAUSSIAN_BLUR_3x3, 1/16)
 # filtered.show_img_without_axis()
 
-base_img = BaseImage('sudoku.jpg', color_model=ColorModel.rgb)
 
-test = BaseImage((base_img.data * 255).astype('uint8'), color_model=ColorModel.rgb)
-# test.show_img_without_axis()
-# base_img.show_img_without_axis()
 
 # SUDOKU
+
+# base_img = BaseImage('sudoku.jpg', color_model=ColorModel.rgb)
+
+# test = BaseImage((base_img.data * 255).astype('uint8'), color_model=ColorModel.rgb)
+# test.show_img_without_axis()
+# base_img.show_img_without_axis()
 
 # sob0 = ImageFiltration().conv_2d(test, Filter.SOBEL_0deg)
 # sob45 = ImageFiltration().conv_2d(test, Filter.SOBEL_45deg)
