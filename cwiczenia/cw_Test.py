@@ -27,14 +27,18 @@ test = BaseImage((base_img.data * 255).astype('uint8'), color_model=ColorModel.r
 # test.show_img_without_axis()
 # base_img.show_img_without_axis()
 
-sob0 = ImageFiltration().conv_2d(test, Filter.SOBEL_0deg)
-sob45 = ImageFiltration().conv_2d(test, Filter.SOBEL_45deg)
-sob90 = ImageFiltration().conv_2d(test, Filter.SOBEL_90deg)
-sob135 = ImageFiltration().conv_2d(test, Filter.SOBEL_135deg)
-edges = ((sob0.data + sob45.data + sob90.data + sob135.data) / 4).astype('i')
+# SUDOKU
 
-img = BaseImage(edges, ColorModel.rgb)
-img.show_img_without_axis()
+# sob0 = ImageFiltration().conv_2d(test, Filter.SOBEL_0deg)
+# sob45 = ImageFiltration().conv_2d(test, Filter.SOBEL_45deg)
+# sob90 = ImageFiltration().conv_2d(test, Filter.SOBEL_90deg)
+# sob135 = ImageFiltration().conv_2d(test, Filter.SOBEL_135deg)
+# edges = (sob0.data + sob45.data + sob90.data + sob135.data).astype('uint8')
+#
+# img = BaseImage(edges, ColorModel.rgb)
+# img.show_img_without_axis()
+
+# KONIEC SUDOKU
 
 # base_img.show_img_without_axis()
 # img_rgb = base_img
